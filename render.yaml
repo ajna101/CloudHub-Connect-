@@ -29,10 +29,6 @@ services:
     startCommand: "cd frontend && npm start"
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: cloudhub-backend
-          property: host
-          format: "https://{host}"
+        value: https://cloudhub-backend-enca.onrender.com
       - key: NODE_VERSION
         value: 20.10.0
