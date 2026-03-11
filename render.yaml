@@ -33,6 +33,6 @@ services:
           type: web
           name: cloudhub-backend
           property: host
-          format: https://{host}
+          format: "https://{host}"
       - key: NODE_VERSION
         value: 20.10.0
