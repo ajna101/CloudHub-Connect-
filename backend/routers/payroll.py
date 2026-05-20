@@ -68,15 +68,6 @@ def generate_payroll(
     if not comp:
         raise HTTPException(status_code=400, detail="No salary components defined for this employee")
 
-    # Check if already generated
-    existing = db.query(SalaryRecord).filter(
-        SalaryRecord.employee_id == data.employee_id,
-        SalaryRecord.month == data.month,
-        SalaryRecord.year == data.year
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Salary already generated for this period")
-
     # Calculate proportional salary based on worked days
     ratio = data.worked_days / data.total_days if data.total_days > 0 else 0
 
@@ -91,6 +82,31 @@ def generate_payroll(
     it = round(comp.income_tax, 2)
     total_ded = round(pf + pt + it, 2)
     net = round(gross - total_ded, 2)
+
+    # Check if already generated
+    existing = db.query(SalaryRecord).filter(
+        SalaryRecord.employee_id == data.employee_id,
+        SalaryRecord.month == data.month,
+        SalaryRecord.year == data.year
+    ).first()
+    if existing:
+        existing.worked_days = data.worked_days
+        existing.total_days = data.total_days
+        existing.lop_days = data.lop_days
+        existing.basic = basic
+        existing.hra = hra
+        existing.allowances = allowances
+        existing.bonus = bonus
+        existing.gross_salary = gross
+        existing.pf = pf
+        existing.professional_tax = pt
+        existing.income_tax = it
+        existing.total_deductions = total_ded
+        existing.net_salary = net
+        existing.generated_by = admin.id
+        db.commit()
+        db.refresh(existing)
+        return existing
 
     record = SalaryRecord(
         employee_id=data.employee_id,
